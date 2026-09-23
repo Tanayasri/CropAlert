@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Help — CropAlert</title>
+  <meta name="description" content="How to use CropAlert: step-by-step instructions, what the tool can and cannot do, what the confidence score means, and frequently asked questions.">
+
+  <!-- Tailwind CSS via CDN (no npm install required). -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            canvas: '#f5f7f4',
+            brand: { 50:'#f1f7f2',100:'#dfeee2',200:'#c1ddc7',300:'#96c7a2',400:'#66a978',500:'#428c56',600:'#2f7043',700:'#265a37',800:'#21482f',900:'#1c3c29',950:'#0e2217' },
+            harvest: { 50:'#fdf7ec',100:'#fbeed3',200:'#f6dba4',300:'#f0c26d',400:'#e9a63f',500:'#e28b24',600:'#c96e19',700:'#a55317',800:'#86421a',900:'#6e3818' },
+            ink: { 500:'#6b786f',600:'#4d5b54',700:'#3a4741',800:'#24312a',900:'#15201a' }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            display: ['Sora', 'Inter', 'system-ui', 'sans-serif']
+          },
+          boxShadow: {
+            card: '0 1px 2px rgba(21,32,26,0.06), 0 12px 28px -20px rgba(21,32,26,0.45)'
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="bg-canvas font-sans text-ink-800 antialiased">
+
+  <!-- ===================== ACCESSIBILITY: SKIP LINK ===================== -->
+  <a href="#main-content"
+     class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-brand-800 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white">
+    Skip to main content
+  </a>
+
+  <!-- ===================== NAVIGATION (same on every page) ===================== -->
+  <header class="sticky top-0 z-40 border-b border-brand-200 bg-white/95 backdrop-blur">
+    <div class="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
+      <a href="index.html" class="flex items-center gap-2.5 rounded-lg px-1 py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-2">
+        <svg class="h-9 w-9" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+          <path d="M20 2.5 34 7.6v11.2c0 9.1-5.7 15.8-14 18.7-8.3-2.9-14-9.6-14-18.7V7.6L20 2.5Z" fill="#1c3c29"/>
+          <path d="M27.5 11.5c.6 6.8-1.7 12.4-6.9 15.2-4.7-2.2-7.6-6.6-7.4-12.4 5.6-1.6 10.4-2.2 14.3-2.8Z" fill="#96c7a2"/>
+          <path d="M20.6 26.7c-.6-5.4.3-9.9 2.7-13.6" stroke="#1c3c29" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+          <circle cx="30.5" cy="29.5" r="6.5" fill="#e9a63f" stroke="#ffffff" stroke-width="2"/>
+          <path d="M30.5 26.7v3.2M30.5 32.3h.01" stroke="#3d1c0b" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <span class="font-display text-lg font-bold tracking-tight text-brand-900">CropAlert</span>
+      </a>
+
+      <nav aria-label="Main navigation" class="hidden md:block">
+        <ul class="flex items-center gap-1">
+          <li><a href="index.html" class="rounded-lg px-3 py-2 text-sm font-medium text-ink-700 hover:bg-brand-50 hover:text-brand-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-2">Home</a></li>
+          <li><a href="about.html" class="rounded-lg px-3 py-2 text-sm font-medium text-ink-700 hover:bg-brand-50 hover:text-brand-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-2">About</a></li>
+          <li><a href="app.html" class="rounded-lg px-3 py-2 text-sm font-medium text-ink-700 hover:bg-brand-50 hover:text-brand-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-2">App</a></li>
+          <li><a href="library.html" class="rounded-lg px-3 py-2 text-sm font-medium text-ink-700 hover:bg-brand-50 hover:text-brand-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-2">Disease Library</a></li>
+          <li><a href="help.html" aria-current="page" class="rounded-lg bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 ring-1 ring-brand-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-2">Help</a></li>
+        </ul>
+      </nav>
+
+      <button type="button" id="nav-toggle" aria-expanded="false" aria-controls="mobile-menu"
+              class="inline-flex items-center justify-center rounded-lg border border-brand-200 p-2 text-ink-700 hover:bg-brand-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-2 md:hidden">
+        <span id="nav-toggle-label" class="sr-only">Open main menu</span>
+        <svg aria-hidden="true" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+          <path stroke-linecap="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5"/>
+        </svg>
+      </button>
+    </div>
+
+    <div id="mobile-menu" class="hidden border-t border-brand-200 bg-white md:hidden">
+      <nav aria-label="Mobile navigation" class="mx-auto max-w-7xl px-4 py-3 sm:px-6">
+        <ul class="flex flex-col gap-1">
+          <li><a href="index.html" class="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-700 hover:bg-brand-50">Home</a></li>
+          <li><a href="about.html" class="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-700 hover:bg-brand-50">About</a></li>
+          <li><a href="app.html" class="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-700 hover:bg-brand-50">App</a></li>
+          <li><a href="library.html" class="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-700 hover:bg-brand-50">Disease Library</a></li>
+          <li><a href="help.html" aria-current="page" class="block rounded-lg bg-brand-50 px-3 py-2.5 text-sm font-semibold text-brand-900">Help</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ===================== MAIN CONTENT ===================== -->
+  <main id="main-content">
+
+    <!-- ---------- PAGE HEADER ---------- -->
+    <section class="border-b border-brand-200 bg-gradient-to-b from-brand-50 to-canvas">
+      <div class="mx-auto max-w-4xl px-4 py-14 sm:px-6 md:py-16 lg:px-8">
+        <p class="text-sm font-semibold uppercase tracking-wider text-brand-700">Help</p>
+        <h1 class="mt-3 font-display text-4xl font-bold leading-tight tracking-tight text-brand-950 sm:text-5xl">
+          How to use CropAlert
+        </h1>
+        <p class="mt-5 max-w-3xl text-lg leading-relaxed text-ink-700">
+          The whole assessment takes about two minutes. You do not need an account, you do not need
+          to upload photos, and nothing you enter leaves your device.
+        </p>
+        <div class="mt-7">
+          <a href="app.html"
+             class="inline-flex items-center justify-center rounded-xl bg-brand-700 px-6 py-3.5 text-base font-semibold text-white shadow-card hover:bg-brand-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-2">
+            Start Assessment
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- STEP-BY-STEP ---------- -->
+    <section aria-labelledby="steps-heading" class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+      <div class="max-w-3xl">
+        <h2 id="steps-heading" class="font-display text-3xl font-bold text-brand-950">Five steps</h2>
+        <p class="mt-4 text-lg leading-relaxed text-ink-700">
+          Follow these steps on the <a href="app.html" class="font-semibold text-brand-700 underline decoration-brand-300 underline-offset-2 hover:decoration-brand-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-2 rounded">App page</a>.
+        </p>
+      </div>
+
+      <!-- Ordered list of the five required steps -->
+      <ol class="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <li class="rounded-2xl border border-brand-200 bg-white p-6 shadow-card">
+          <span class="flex h-9 w-9 items-center justify-center rounded-full bg-brand-700 font-display text-sm font-bold text-white" aria-hidden="true">1</span>
+          <h3 class="mt-4 font-display text-lg font-semibold text-ink-900">Select a crop</h3>
+          <p class="mt-2 text-sm leading-relaxed text-ink-700">
+            Choose <strong>Rice</strong>, <strong>Tomato</strong> or <strong>Potato</strong>. Only
+            the four diseases relevant to that crop are considered from that point on.
+          </p>
+        </li>
+        <li class="rounded-2xl border border-brand-200 bg-white p-6 shadow-card">
+          <span class="flex h-9 w-9 items-center justify-center rounded-full bg-brand-700 font-display text-sm font-bold text-white" aria-hidden="true">2</span>
+          <h3 class="mt-4 font-display text-lg font-semibold text-ink-900">Answer the symptom questions</h3>
+          <p class="mt-2 text-sm leading-relaxed text-ink-700">
+            Six questions, one answer each. Look at the affected plants first, then pick the option
+            that matches best. The progress bar shows where you are, and <strong>Back</strong> lets
+            you change any earlier answer.
+          </p>
+        </li>
+        <li class="rounded-2xl border border-brand-200 bg-white p-6 shadow-card">
+          <span class="flex h-9 w-9 items-center justify-center rounded-full bg-brand-700 font-display text-sm font-bold text-white" aria-hidden="true">3</span>
+          <h3 class="mt-4 font-display text-lg font-semibold text-ink-900">Submit the assessment</h3>
+          <p class="mt-2 text-sm leading-relaxed text-ink-700">
+            On the last question the button reads <strong>See my result</strong>. CropAlert cannot
+            continue while a question is unanswered — you will see a clear message instead.
+          </p>
+        </li>
+        <li class="rounded-2xl border border-brand-200 bg-white p-6 shadow-card">
+          <span class="flex h-9 w-9 items-center justify-center rounded-full bg-brand-700 font-display text-sm font-bold text-white" aria-hidden="true">4</span>
+          <h3 class="mt-4 font-display text-lg font-semibold text-ink-900">Review the predicted disease</h3>
+          <p class="mt-2 text-sm leading-relaxed text-ink-700">
+            Check the most likely disease, the confidence percentage, the answers that contributed,
+            and how the other three diseases compared. Save the result if you want to keep it on
+            this device.
+          </p>
+        </li>
+        <li class="rounded-2xl border border-brand-200 bg-white p-6 shadow-card">
+          <span class="flex h-9 w-9 items-center justify-center rounded-full bg-brand-700 font-display text-sm font-bold text-white" aria-hidden="true">5</span>
+          <h3 class="mt-4 font-display text-lg font-semibold text-ink-900">Read the management and prevention information</h3>
+          <p class="mt-2 text-sm leading-relaxed text-ink-700">
+            The result card includes the causal organism, affected parts, favourable conditions,
+            management and prevention — plus a link to the full profile in the
+            <a href="library.html" class="font-semibold text-brand-700 underline decoration-brand-300 underline-offset-2 hover:decoration-brand-700 rounded">Disease Library</a>.
+          </p>
+        </li>
+        <li class="rounded-2xl border border-brand-300 bg-brand-50 p-6 shadow-card ring-1 ring-brand-200">
+          <span class="flex h-9 w-9 items-center justify-center rounded-full bg-harvest-500 font-display text-sm font-bold text-white" aria-hidden="true">✓</span>
+          <h3 class="mt-4 font-display text-lg font-semibold text-brand-950">Then confirm with a person</h3>
+          <p class="mt-2 text-sm leading-relaxed text-ink-800">
+            Share the prediction and your observations with an agronomist or extension officer
+            before applying any treatment. CropAlert prepares the conversation — it does not end it.
+          </p>
+        </li>
+      </ol>
+    </section>
+
+    <!-- ---------- CAN / CANNOT ---------- -->
+    <section aria-labelledby="limits-heading" class="border-y border-brand-200 bg-white">
+      <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+        <div class="max-w-3xl">
+          <h2 id="limits-heading" class="font-display text-3xl font-bold text-brand-950">
+            What CropAlert can and cannot do
+          </h2>
+          <p class="mt-4 text-lg leading-relaxed text-ink-700">
+            Knowing the boundaries of a tool is part of using it well.
+          </p>
+        </div>
+
+        <div class="mt-8 grid gap-6 md:grid-cols-2">
+          <div class="rounded-2xl border border-brand-300 bg-brand-50 p-6 shadow-card ring-1 ring-brand-200">
+            <h3 class="font-display text-lg font-semibold text-brand-950">CropAlert can</h3>
+            <ul class="mt-4 flex flex-col gap-3 text-sm leading-relaxed text-ink-800">
+              <li class="flex gap-2.5"><span class="font-bold text-brand-700" aria-hidden="true">+</span><span>Structure your observations into consistent diagnostic questions.</span></li>
+              <li class="flex gap-2.5"><span class="font-bold text-brand-700" aria-hidden="true">+</span><span>Rank four candidate diseases for rice, tomato or potato and show how close they were.</span></li>
+              <li class="flex gap-2.5"><span class="font-bold text-brand-700" aria-hidden="true">+</span><span>Explain which of your answers drove the prediction.</span></li>
+              <li class="flex gap-2.5"><span class="font-bold text-brand-700" aria-hidden="true">+</span><span>Give you reference information on symptoms, causes, favourable conditions, management and prevention.</span></li>
+              <li class="flex gap-2.5"><span class="font-bold text-brand-700" aria-hidden="true">+</span><span>Produce the same result for the same answers, every time.</span></li>
+              <li class="flex gap-2.5"><span class="font-bold text-brand-700" aria-hidden="true">+</span><span>Run entirely in your browser, so your answers stay on your device.</span></li>
+            </ul>
+          </div>
+
+          <div class="rounded-2xl border border-harvest-300 bg-harvest-50 p-6 shadow-card">
+            <h3 class="font-display text-lg font-semibold text-ink-900">CropAlert cannot</h3>
+            <ul class="mt-4 flex flex-col gap-3 text-sm leading-relaxed text-ink-800">
+              <li class="flex gap-2.5"><span class="font-bold text-harvest-700" aria-hidden="true">−</span><span>Identify diseases other than the twelve it covers, or detect pests, weeds, nutrient or herbicide problems.</span></li>
+              <li class="flex gap-2.5"><span class="font-bold text-harvest-700" aria-hidden="true">−</span><span>Accept photos or samples in this version — it works from your answers alone.</span></li>
+              <li class="flex gap-2.5"><span class="font-bold text-harvest-700" aria-hidden="true">−</span><span>Recognise mixed infections: only one “most likely” disease is returned.</span></li>
+              <li class="flex gap-2.5"><span class="font-bold text-harvest-700" aria-hidden="true">−</span><span>Replace a laboratory test, a field visit or an agronomist’s diagnosis.</span></li>
+              <li class="flex gap-2.5"><span class="font-bold text-harvest-700" aria-hidden="true">−</span><span>Guarantee a treatment outcome or claim a validated accuracy rate.</span></li>
+              <li class="flex gap-2.5"><span class="font-bold text-harvest-700" aria-hidden="true">−</span><span>Consider your field’s history, soil, variety or local weather forecast.</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- UNDERSTANDING THE SCORE ---------- -->
+    <section aria-labelledby="score-heading" class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+      <div class="grid gap-10 lg:grid-cols-2">
+        <div>
+          <h2 id="score-heading" class="font-display text-3xl font-bold text-brand-950">
+            Understanding the prediction and confidence score
+          </h2>
+          <p class="mt-4 leading-relaxed text-ink-700">
+            Every answer option carries a weight for each candidate disease: strong supporting
+            evidence adds several points, weaker or overlapping evidence adds a little, and evidence
+            that argues against a disease subtracts. CropAlert adds those weights up across your six
+            answers to produce a score for each of the four diseases.
+          </p>
+          <p class="mt-4 leading-relaxed text-ink-700">
+            The disease with the highest score becomes the prediction. Two numbers are then shown:
+          </p>
+          <ul class="mt-4 flex flex-col gap-4 text-sm leading-relaxed text-ink-800">
+            <li class="rounded-xl border border-brand-200 bg-white p-4">
+              <strong class="font-semibold text-ink-900">Share (%)</strong> — in “How the four
+              diseases compared”, each disease’s percentage is its slice of the total supporting
+              score. The four always add up to about 100%.
+            </li>
+            <li class="rounded-xl border border-brand-200 bg-white p-4">
+              <strong class="font-semibold text-ink-900">Confidence (%)</strong> — the headline
+              figure. It blends the winning disease’s share with how much of the available evidence
+              you confirmed, and is deliberately capped at <strong>90%</strong> so the prototype
+              never looks more certain than it should be.
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="font-display text-xl font-bold text-ink-900">Confidence bands</h3>
+          <p class="mt-2 text-sm text-ink-700">The band is always written out, so the meaning never depends on colour alone.</p>
+
+          <dl class="mt-5 flex flex-col gap-3">
+            <div class="flex items-start gap-4 rounded-xl border border-brand-200 bg-white p-4">
+              <dt class="w-28 shrink-0 rounded-lg bg-brand-700 px-2.5 py-1 text-center text-xs font-bold text-white">75–90%</dt>
+              <dd class="text-sm leading-relaxed text-ink-700"><strong class="text-ink-900">Strong match.</strong> Your answers fit one disease clearly — still confirm before acting.</dd>
+            </div>
+            <div class="flex items-start gap-4 rounded-xl border border-brand-200 bg-white p-4">
+              <dt class="w-28 shrink-0 rounded-lg bg-brand-500 px-2.5 py-1 text-center text-xs font-bold text-white">55–74%</dt>
+              <dd class="text-sm leading-relaxed text-ink-700"><strong class="text-ink-900">Moderate match.</strong> One disease leads, but some answers overlap with the others.</dd>
+            </div>
+            <div class="flex items-start gap-4 rounded-xl border border-brand-200 bg-white p-4">
+              <dt class="w-28 shrink-0 rounded-lg bg-harvest-500 px-2.5 py-1 text-center text-xs font-bold text-white">40–54%</dt>
+              <dd class="text-sm leading-relaxed text-ink-700"><strong class="text-ink-900">Limited match.</strong> Symptoms are shared. Re-check your answers and consider the runner-up.</dd>
+            </div>
+            <div class="flex items-start gap-4 rounded-xl border border-brand-200 bg-white p-4">
+              <dt class="w-28 shrink-0 rounded-lg bg-ink-600 px-2.5 py-1 text-center text-xs font-bold text-white">below 40%</dt>
+              <dd class="text-sm leading-relaxed text-ink-700"><strong class="text-ink-900">Weak match — inconclusive.</strong> The answers do not point to a single disease. Consult an agronomist.</dd>
+            </div>
+          </dl>
+
+          <div class="mt-6 rounded-xl border border-brand-200 bg-canvas p-5">
+            <p class="text-sm font-semibold text-ink-900">A worked example</p>
+            <p class="mt-2 text-sm leading-relaxed text-ink-700">
+              If five of your answers strongly match <em>Rice Blast</em> and one answer also fits
+              sheath blight, rice blast collects the largest score, its share of the total rises, and
+              the confidence lands in the “strong match” band. Swap one answer for a contradictory
+              one and both the ranking and the confidence drop.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- FAQ ---------- -->
+    <section aria-labelledby="faq-heading" class="border-t border-brand-200 bg-white">
+      <div class="mx-auto max-w-4xl px-4 py-14 sm:px-6 lg:px-8">
+        <h2 id="faq-heading" class="font-display text-3xl font-bold text-brand-950">Frequently asked questions</h2>
+
+        <!-- Native <details> elements: keyboard accessible and usable without JavaScript. -->
+        <div class="mt-8 flex flex-col gap-3">
+          <details class="group rounded-2xl border border-brand-200 bg-canvas p-5">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-display text-base font-semibold text-ink-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-4 rounded">
+              Do I need to upload a photo of the plant?
+              <svg aria-hidden="true" class="h-5 w-5 shrink-0 text-brand-700 transition-transform duration-150 group-open:rotate-180" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+            </summary>
+            <p class="mt-3 text-sm leading-relaxed text-ink-700">
+              No. This version of CropAlert does not use image input at all. You simply describe what
+              you can see by choosing the closest matching option for each question.
+            </p>
+          </details>
+
+          <details class="group rounded-2xl border border-brand-200 bg-canvas p-5">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-display text-base font-semibold text-ink-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-4 rounded">
+              How long does an assessment take?
+              <svg aria-hidden="true" class="h-5 w-5 shrink-0 text-brand-700 transition-transform duration-150 group-open:rotate-180" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+            </summary>
+            <p class="mt-3 text-sm leading-relaxed text-ink-700">
+              Around two minutes: one crop selection and six questions. Walk through the field first
+              so your answers reflect what you actually observe.
+            </p>
+          </details>
+
+          <details class="group rounded-2xl border border-brand-200 bg-canvas p-5">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-display text-base font-semibold text-ink-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-4 rounded">
+              Can I change an answer after selecting it?
+              <svg aria-hidden="true" class="h-5 w-5 shrink-0 text-brand-700 transition-transform duration-150 group-open:rotate-180" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+            </summary>
+            <p class="mt-3 text-sm leading-relaxed text-ink-700">
+              Yes. Use <strong>Back</strong> to return to any earlier question — your previous
+              choice stays selected, and picking a different option updates the result immediately.
+              <strong>Restart assessment</strong> clears everything and returns to crop selection.
+            </p>
+          </details>
+
+          <details class="group rounded-2xl border border-brand-200 bg-canvas p-5">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-display text-base font-semibold text-ink-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-4 rounded">
+              What exactly does the confidence percentage mean?
+              <svg aria-hidden="true" class="h-5 w-5 shrink-0 text-brand-700 transition-transform duration-150 group-open:rotate-180" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+            </summary>
+            <p class="mt-3 text-sm leading-relaxed text-ink-700">
+              It is a <strong>matching score</strong>, not a statistical probability and not a
+              measure of how sick the plant is. It tells you how strongly your reported symptoms
+              correspond to the leading disease relative to the other three, capped at 90%.
+              See “Understanding the prediction and confidence score” above for the full explanation.
+            </p>
+          </details>
+
+          <details class="group rounded-2xl border border-brand-200 bg-canvas p-5">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-display text-base font-semibold text-ink-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-4 rounded">
+              Is a real AI model running in my browser?
+              <svg aria-hidden="true" class="h-5 w-5 shrink-0 text-brand-700 transition-transform duration-150 group-open:rotate-180" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+            </summary>
+            <p class="mt-3 text-sm leading-relaxed text-ink-700">
+              Not yet, and CropAlert does not claim otherwise. The current prediction is a
+              <strong>prototype scoring demonstration</strong> written in JavaScript: transparent
+              weights, no training, no validated accuracy. It is structured so a trained
+              scikit-learn model could replace the scoring function later without changing the
+              interface.
+            </p>
+          </details>
+
+          <details class="group rounded-2xl border border-brand-200 bg-canvas p-5">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-display text-base font-semibold text-ink-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-4 rounded">
+              The result looks wrong — what should I do?
+              <svg aria-hidden="true" class="h-5 w-5 shrink-0 text-brand-700 transition-transform duration-150 group-open:rotate-180" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+            </summary>
+            <p class="mt-3 text-sm leading-relaxed text-ink-700">
+              First re-check your answers, especially the questions about lesion shape and location —
+              they carry the most weight. Then compare the runner-up diseases in the result and read
+              their profiles in the Disease Library. If symptoms still do not match, treat the result
+              as a starting point and get a professional diagnosis.
+            </p>
+          </details>
+
+          <details class="group rounded-2xl border border-brand-200 bg-canvas p-5">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-display text-base font-semibold text-ink-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-4 rounded">
+              Are my answers uploaded anywhere?
+              <svg aria-hidden="true" class="h-5 w-5 shrink-0 text-brand-700 transition-transform duration-150 group-open:rotate-180" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+            </summary>
+            <p class="mt-3 text-sm leading-relaxed text-ink-700">
+              No. The assessment runs entirely in your browser. If you press <strong>Save
+              result</strong>, the summary is stored in your browser’s local storage on this device
+              only, and <strong>Clear saved results</strong> removes it.
+            </p>
+          </details>
+
+          <details class="group rounded-2xl border border-brand-200 bg-canvas p-5">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-display text-base font-semibold text-ink-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-4 rounded">
+              My disease is not in the list. Can CropAlert still help?
+              <svg aria-hidden="true" class="h-5 w-5 shrink-0 text-brand-700 transition-transform duration-150 group-open:rotate-180" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+            </summary>
+            <p class="mt-3 text-sm leading-relaxed text-ink-700">
+              Only twelve diseases across three crops are covered. If the problem is outside that
+              scope — or caused by pests, nutrients or chemical damage — the tool will still return
+              the best of its four options, which may not be correct. Use the assessment as a
+              structured starting point and seek advice beyond it.
+            </p>
+          </details>
+
+          <details class="group rounded-2xl border border-brand-200 bg-canvas p-5">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-display text-base font-semibold text-ink-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-4 rounded">
+              Should I apply a pesticide straight away?
+              <svg aria-hidden="true" class="h-5 w-5 shrink-0 text-brand-700 transition-transform duration-150 group-open:rotate-180" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+            </summary>
+            <p class="mt-3 text-sm leading-relaxed text-ink-700">
+              No. Fungicides do not work on bacterial or viral diseases, and bactericides do not
+              work on fungal ones. Confirm the diagnosis first, choose a product registered for that
+              problem and crop, and always follow the label rate and safety instructions.
+            </p>
+          </details>
+
+          <details class="group rounded-2xl border border-brand-200 bg-canvas p-5">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-display text-base font-semibold text-ink-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-4 rounded">
+              Does it work on a phone, and without internet?
+              <svg aria-hidden="true" class="h-5 w-5 shrink-0 text-brand-700 transition-transform duration-150 group-open:rotate-180" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+            </summary>
+            <p class="mt-3 text-sm leading-relaxed text-ink-700">
+              Yes to both — the layout adapts to small screens and the whole site is plain HTML,
+              JavaScript and Tailwind CSS. Internet is needed only the first time (to fetch the
+              stylesheet and fonts); after that the pages open directly from the folder, including
+              by double-clicking <code class="rounded bg-white px-1.5 py-0.5 text-xs">index.html</code>.
+            </p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- DISCLAIMER ---------- -->
+    <section aria-labelledby="disclaimer-heading" class="mx-auto max-w-7xl px-4 pb-16 pt-14 sm:px-6 lg:px-8">
+      <div class="rounded-2xl border border-harvest-300 bg-harvest-50 p-6 sm:p-8">
+        <div class="flex items-start gap-4">
+          <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-harvest-100 text-harvest-800 ring-1 ring-harvest-300" aria-hidden="true">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25 9 16.5m3-6h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+          </span>
+          <div>
+            <h2 id="disclaimer-heading" class="font-display text-lg font-semibold text-ink-900">Disclaimer</h2>
+            <p class="mt-2 text-sm leading-relaxed text-ink-800 sm:text-base">
+              <strong>CropAlert provides a preliminary assessment for educational and informational
+              purposes. It is not a substitute for professional agricultural diagnosis or
+              advice.</strong>
+            </p>
+            <p class="mt-2 text-sm leading-relaxed text-ink-700">
+              This is a student-built prototype. Its prediction is produced by a transparent scoring
+              demonstration in the browser — not a trained, validated model — and it carries no
+              claimed diagnostic accuracy. Recommendations are general educational summaries; verify
+              them against local extension guidance and the pesticide label before acting, and
+              involve a qualified agronomist or diagnostic laboratory for any decision with real
+              economic or environmental consequences.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===================== FOOTER (same on every page) ===================== -->
+  <footer class="bg-brand-950 text-brand-100">
+    <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      <div class="grid gap-10 md:grid-cols-3">
+        <div>
+          <a href="index.html" class="inline-flex items-center gap-2.5 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-400 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-950">
+            <svg class="h-8 w-8" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+              <path d="M20 2.5 34 7.6v11.2c0 9.1-5.7 15.8-14 18.7-8.3-2.9-14-9.6-14-18.7V7.6L20 2.5Z" fill="#ffffff" fill-opacity="0.12"/>
+              <path d="M27.5 11.5c.6 6.8-1.7 12.4-6.9 15.2-4.7-2.2-7.6-6.6-7.4-12.4 5.6-1.6 10.4-2.2 14.3-2.8Z" fill="#96c7a2"/>
+              <circle cx="30.5" cy="29.5" r="6.5" fill="#e9a63f" stroke="#0e2217" stroke-width="2"/>
+              <path d="M30.5 26.7v3.2M30.5 32.3h.01" stroke="#3d1c0b" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <span class="font-display text-base font-bold text-white">CropAlert</span>
+          </a>
+          <p class="mt-4 text-sm leading-relaxed text-brand-200">
+            AI-powered symptom-based crop disease assessment for rice, tomato, and potato.
+          </p>
+          <p class="mt-4 inline-flex rounded-full bg-harvest-500/15 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-harvest-300 ring-1 ring-harvest-500/40">
+            Student project · Prototype
+          </p>
+        </div>
+
+        <nav aria-label="Footer navigation">
+          <h2 class="font-display text-sm font-semibold uppercase tracking-wider text-white">Pages</h2>
+          <ul class="mt-4 flex flex-col gap-2 text-sm">
+            <li><a href="index.html" class="text-brand-200 underline decoration-transparent underline-offset-2 hover:text-white hover:decoration-harvest-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-400 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-950 rounded">Home</a></li>
+            <li><a href="about.html" class="text-brand-200 underline decoration-transparent underline-offset-2 hover:text-white hover:decoration-harvest-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-400 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-950 rounded">About</a></li>
+            <li><a href="app.html" class="text-brand-200 underline decoration-transparent underline-offset-2 hover:text-white hover:decoration-harvest-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-400 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-950 rounded">App</a></li>
+            <li><a href="library.html" class="text-brand-200 underline decoration-transparent underline-offset-2 hover:text-white hover:decoration-harvest-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-400 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-950 rounded">Disease Library</a></li>
+            <li><a href="help.html" class="text-brand-200 underline decoration-transparent underline-offset-2 hover:text-white hover:decoration-harvest-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-400 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-950 rounded">Help</a></li>
+          </ul>
+        </nav>
+
+        <div>
+          <h2 class="font-display text-sm font-semibold uppercase tracking-wider text-white">Disclaimer</h2>
+          <p class="mt-4 text-sm leading-relaxed text-brand-200">
+            CropAlert provides a preliminary assessment for educational and informational purposes.
+            It is not a substitute for professional agricultural diagnosis or advice.
+          </p>
+          <p class="mt-3 text-sm leading-relaxed text-brand-200">
+            The browser-based prediction is a prototype scoring demonstration. CropAlert does not
+            claim a validated diagnostic accuracy.
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-10 flex flex-col gap-2 border-t border-brand-800 pt-6 text-xs text-brand-300 sm:flex-row sm:items-center sm:justify-between">
+        <p>&copy; <span id="year">2026</span> CropAlert — a student-developed prototype project.</p>
+        <p>Plain HTML, JavaScript and Tailwind CSS. Works offline after the first load.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

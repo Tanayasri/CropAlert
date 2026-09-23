@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>About — CropAlert</title>
+  <meta name="description" content="What CropAlert is, the problem it solves, how its prototype AI/ML scoring works, who it is for, and the limits of AI-based crop disease assessment.">
+
+  <!-- Tailwind CSS via CDN (no npm install required). -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            canvas: '#f5f7f4',
+            brand: { 50:'#f1f7f2',100:'#dfeee2',200:'#c1ddc7',300:'#96c7a2',400:'#66a978',500:'#428c56',600:'#2f7043',700:'#265a37',800:'#21482f',900:'#1c3c29',950:'#0e2217' },
+            harvest: { 50:'#fdf7ec',100:'#fbeed3',200:'#f6dba4',300:'#f0c26d',400:'#e9a63f',500:'#e28b24',600:'#c96e19',700:'#a55317',800:'#86421a',900:'#6e3818' },
+            ink: { 500:'#6b786f',600:'#4d5b54',700:'#3a4741',800:'#24312a',900:'#15201a' }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            display: ['Sora', 'Inter', 'system-ui', 'sans-serif']
+          },
+          boxShadow: {
+            card: '0 1px 2px rgba(21,32,26,0.06), 0 12px 28px -20px rgba(21,32,26,0.45)'
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="bg-canvas font-sans text-ink-800 antialiased">
+
+  <!-- ===================== ACCESSIBILITY: SKIP LINK ===================== -->
+  <a href="#main-content"
+     class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-brand-800 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white">
+    Skip to main content
+  </a>
+
+  <!-- ===================== NAVIGATION (same on every page) ===================== -->
+  <header class="sticky top-0 z-40 border-b border-brand-200 bg-white/95 backdrop-blur">
+    <div class="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
+      <a href="index.html" class="flex items-center gap-2.5 rounded-lg px-1 py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-2">
+        <svg class="h-9 w-9" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+          <path d="M20 2.5 34 7.6v11.2c0 9.1-5.7 15.8-14 18.7-8.3-2.9-14-9.6-14-18.7V7.6L20 2.5Z" fill="#1c3c29"/>
+          <path d="M27.5 11.5c.6 6.8-1.7 12.4-6.9 15.2-4.7-2.2-7.6-6.6-7.4-12.4 5.6-1.6 10.4-2.2 14.3-2.8Z" fill="#96c7a2"/>
+          <path d="M20.6 26.7c-.6-5.4.3-9.9 2.7-13.6" stroke="#1c3c29" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+          <circle cx="30.5" cy="29.5" r="6.5" fill="#e9a63f" stroke="#ffffff" stroke-width="2"/>
+          <path d="M30.5 26.7v3.2M30.5 32.3h.01" stroke="#3d1c0b" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <span class="font-display text-lg font-bold tracking-tight text-brand-900">CropAlert</span>
+      </a>
+
+      <nav aria-label="Main navigation" class="hidden md:block">
+        <ul class="flex items-center gap-1">
+          <li><a href="index.html" class="rounded-lg px-3 py-2 text-sm font-medium text-ink-700 hover:bg-brand-50 hover:text-brand-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-2">Home</a></li>
+          <li><a href="about.html" aria-current="page" class="rounded-lg bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 ring-1 ring-brand-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-2">About</a></li>
+          <li><a href="app.html" class="rounded-lg px-3 py-2 text-sm font-medium text-ink-700 hover:bg-brand-50 hover:text-brand-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-2">App</a></li>
+          <li><a href="library.html" class="rounded-lg px-3 py-2 text-sm font-medium text-ink-700 hover:bg-brand-50 hover:text-brand-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-2">Disease Library</a></li>
+          <li><a href="help.html" class="rounded-lg px-3 py-2 text-sm font-medium text-ink-700 hover:bg-brand-50 hover:text-brand-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-2">Help</a></li>
+        </ul>
+      </nav>
+
+      <button type="button" id="nav-toggle" aria-expanded="false" aria-controls="mobile-menu"
+              class="inline-flex items-center justify-center rounded-lg border border-brand-200 p-2 text-ink-700 hover:bg-brand-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-2 md:hidden">
+        <span id="nav-toggle-label" class="sr-only">Open main menu</span>
+        <svg aria-hidden="true" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+          <path stroke-linecap="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5"/>
+        </svg>
+      </button>
+    </div>
+
+    <div id="mobile-menu" class="hidden border-t border-brand-200 bg-white md:hidden">
+      <nav aria-label="Mobile navigation" class="mx-auto max-w-7xl px-4 py-3 sm:px-6">
+        <ul class="flex flex-col gap-1">
+          <li><a href="index.html" class="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-700 hover:bg-brand-50">Home</a></li>
+          <li><a href="about.html" aria-current="page" class="block rounded-lg bg-brand-50 px-3 py-2.5 text-sm font-semibold text-brand-900">About</a></li>
+          <li><a href="app.html" class="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-700 hover:bg-brand-50">App</a></li>
+          <li><a href="library.html" class="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-700 hover:bg-brand-50">Disease Library</a></li>
+          <li><a href="help.html" class="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-700 hover:bg-brand-50">Help</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ===================== MAIN CONTENT ===================== -->
+  <main id="main-content">
+
+    <!-- ---------- PAGE HEADER ---------- -->
+    <section class="border-b border-brand-200 bg-gradient-to-b from-brand-50 to-canvas">
+      <div class="mx-auto max-w-4xl px-4 py-14 sm:px-6 md:py-16 lg:px-8">
+        <p class="text-sm font-semibold uppercase tracking-wider text-brand-700">About</p>
+        <h1 class="mt-3 font-display text-4xl font-bold leading-tight tracking-tight text-brand-950 sm:text-5xl">
+          About CropAlert
+        </h1>
+        <p class="mt-5 max-w-3xl text-lg leading-relaxed text-ink-700">
+          CropAlert is a student-developed prototype that turns a handful of symptom questions into
+          a structured, explainable first opinion about crop disease — in about two minutes, on any
+          phone or laptop, without uploading a single photo.
+        </p>
+      </div>
+    </section>
+
+    <!-- ---------- WHAT CROPALERT IS ---------- -->
+    <section aria-labelledby="what-heading" class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+      <div class="grid gap-10 lg:grid-cols-2 lg:items-start">
+        <div class="max-w-2xl">
+          <h2 id="what-heading" class="font-display text-3xl font-bold text-brand-950">What CropAlert is</h2>
+          <p class="mt-4 text-lg leading-relaxed text-ink-700">
+            CropAlert is a <strong>symptom-based crop disease assessment tool</strong>. You select your
+            crop, answer six multiple-choice questions about what you can observe — the shape and
+            colour of lesions, where they appear, how quickly they spread, the recent weather — and
+            CropAlert ranks the four diseases it knows for that crop.
+          </p>
+          <p class="mt-4 leading-relaxed text-ink-700">
+            The result is deliberately presented as a <strong>preliminary assessment</strong>: a most
+            likely disease, a confidence percentage, the specific answers that drove the prediction,
+            and the reference information an agronomist would want you to know — causal organism,
+            affected plant parts, favourable conditions, management and prevention.
+          </p>
+          <p class="mt-4 leading-relaxed text-ink-700">
+            This version does <strong>not</strong> accept image input. It is designed as the
+            conversation that happens <em>before</em> a photo or a lab sample: gather the symptoms
+            systematically, narrow the options, and know what to look at next.
+          </p>
+        </div>
+
+        <!-- Image placeholder -->
+        <figure class="m-0">
+          <div class="flex aspect-[4/3] flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-brand-300 bg-white p-6 text-center shadow-card"
+               role="img"
+               aria-label="Image placeholder: a smartphone held in a field showing a crop health assessment screen beside young rice plants. Replace this block with your own image.">
+            <svg aria-hidden="true" class="h-12 w-12 text-brand-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 19.5h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Z"/>
+            </svg>
+            <p class="text-sm font-semibold text-brand-900">Image placeholder</p>
+            <p class="max-w-xs text-sm text-ink-700">CropAlert concept — a phone-based assessment in the field. Replace with your own image.</p>
+          </div>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ---------- THE PROBLEM ---------- -->
+    <section aria-labelledby="problem-heading" class="border-y border-brand-200 bg-white">
+      <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+        <div class="max-w-3xl">
+          <h2 id="problem-heading" class="font-display text-3xl font-bold text-brand-950">The problem it is solving</h2>
+          <p class="mt-4 text-lg leading-relaxed text-ink-700">
+            When a grower sees an unhealthy field, the information they need exists — but it is
+            scattered across extension leaflets, search results, videos, forums and experience, in
+            different languages and levels of detail.
+          </p>
+        </div>
+
+        <div class="mt-10 grid gap-6 md:grid-cols-3">
+          <div class="rounded-2xl border border-brand-200 bg-canvas p-6 shadow-card">
+            <h3 class="font-display text-lg font-semibold text-ink-900">Conflicting sources</h3>
+            <p class="mt-2 text-sm leading-relaxed text-ink-700">
+              Two search results can recommend opposite treatments for the same symptoms, because
+              they are describing two different diseases that look similar in the early stages.
+            </p>
+          </div>
+          <div class="rounded-2xl border border-brand-200 bg-canvas p-6 shadow-card">
+            <h3 class="font-display text-lg font-semibold text-ink-900">No structured starting point</h3>
+            <p class="mt-2 text-sm leading-relaxed text-ink-700">
+              Most growers are not asked the diagnostic questions that actually separate one disease
+              from another, so they never narrow the field of possibilities.
+            </p>
+          </div>
+          <div class="rounded-2xl border border-brand-200 bg-canvas p-6 shadow-card">
+            <h3 class="font-display text-lg font-semibold text-ink-900">Specialists are not on call</h3>
+            <p class="mt-2 text-sm leading-relaxed text-ink-700">
+              Extension officers cover large areas. A grower may wait days for a visit while the
+              disease completes another infection cycle.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- WHY EARLY IDENTIFICATION MATTERS ---------- -->
+    <section aria-labelledby="early-heading" class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+      <div class="grid gap-10 lg:grid-cols-2 lg:items-start">
+        <div>
+          <h2 id="early-heading" class="font-display text-3xl font-bold text-brand-950">
+            Why early identification matters
+          </h2>
+          <p class="mt-4 leading-relaxed text-ink-700">
+            Most crop diseases are far easier and cheaper to hold back when they are caught in the
+            first few days than after they have spread through a field. Identification timing
+            changes the whole economics of the response.
+          </p>
+          <ul class="mt-6 flex flex-col gap-4">
+            <li class="flex gap-3">
+              <span class="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-100 text-brand-800 ring-1 ring-brand-300" aria-hidden="true">
+                <svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+              </span>
+              <span class="text-ink-800"><strong class="font-semibold">Lower cost per action.</strong> Spot treatments and a single well-timed spray are far cheaper than whole-field rescue applications.</span>
+            </li>
+            <li class="flex gap-3">
+              <span class="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-100 text-brand-800 ring-1 ring-brand-300" aria-hidden="true">
+                <svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+              </span>
+              <span class="text-ink-800"><strong class="font-semibold">Fewer infection cycles.</strong> Rapidly spreading diseases such as late blight can cover a field in a matter of days under the right weather.</span>
+            </li>
+            <li class="flex gap-3">
+              <span class="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-100 text-brand-800 ring-1 ring-brand-300" aria-hidden="true">
+                <svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+              </span>
+              <span class="text-ink-800"><strong class="font-semibold">The right product, used correctly.</strong> Fungicides do not cure bacterial or viral diseases, so a wrong guess wastes money and adds unnecessary chemical load.</span>
+            </li>
+            <li class="flex gap-3">
+              <span class="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-100 text-brand-800 ring-1 ring-brand-300" aria-hidden="true">
+                <svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+              </span>
+              <span class="text-ink-800"><strong class="font-semibold">Protected neighbours.</strong> Stopping one outbreak early reduces inoculum and vector pressure for every field around it.</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Image placeholder -->
+        <figure class="m-0">
+          <div class="flex aspect-[4/3] flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-brand-300 bg-white p-6 text-center shadow-card"
+               role="img"
+               aria-label="Image placeholder: close-up of a hand holding a leaf with early disease lesions under daylight. Replace this block with your own image.">
+            <svg aria-hidden="true" class="h-12 w-12 text-brand-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 19.5h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Z"/>
+            </svg>
+            <p class="text-sm font-semibold text-brand-900">Image placeholder</p>
+            <p class="max-w-xs text-sm text-ink-700">Early-stage lesions found during a field walk — replace with your own image</p>
+          </div>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ---------- TARGET USERS ---------- -->
+    <section aria-labelledby="users-heading" class="border-y border-brand-200 bg-white">
+      <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+        <div class="max-w-3xl">
+          <h2 id="users-heading" class="font-display text-3xl font-bold text-brand-950">Who CropAlert is for</h2>
+          <p class="mt-4 text-lg leading-relaxed text-ink-700">
+            CropAlert is a first-pass tool for anyone who needs a structured starting point before a
+            specialist is involved.
+          </p>
+        </div>
+
+        <div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <article class="rounded-2xl border border-brand-200 bg-canvas p-6 shadow-card">
+            <h3 class="font-display text-lg font-semibold text-ink-900">Smallholder farmers</h3>
+            <p class="mt-2 text-sm leading-relaxed text-ink-700">A quick, free check that works on a phone and produces questions worth asking an agronomist.</p>
+          </article>
+          <article class="rounded-2xl border border-brand-200 bg-canvas p-6 shadow-card">
+            <h3 class="font-display text-lg font-semibold text-ink-900">Extension workers</h3>
+            <p class="mt-2 text-sm leading-relaxed text-ink-700">A consistent way to structure a first interview in the field and to explain the options to growers.</p>
+          </article>
+          <article class="rounded-2xl border border-brand-200 bg-canvas p-6 shadow-card">
+            <h3 class="font-display text-lg font-semibold text-ink-900">Students &amp; educators</h3>
+            <p class="mt-2 text-sm leading-relaxed text-ink-700">A transparent example of how symptom data becomes a prediction — every score can be inspected.</p>
+          </article>
+          <article class="rounded-2xl border border-brand-200 bg-canvas p-6 shadow-card">
+            <h3 class="font-display text-lg font-semibold text-ink-900">Home gardeners</h3>
+            <p class="mt-2 text-sm leading-relaxed text-ink-700">Clear prevention and management notes for the most common tomato and potato problems.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- WHY NOT JUST SEARCH ---------- -->
+    <section aria-labelledby="why-heading" class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+      <div class="max-w-3xl">
+        <h2 id="why-heading" class="font-display text-3xl font-bold text-brand-950">
+          Why CropAlert instead of searching manually
+        </h2>
+        <p class="mt-4 text-lg leading-relaxed text-ink-700">
+          CropAlert does not replace expertise — it replaces the twenty scattered tabs you would
+          otherwise open first.
+        </p>
+      </div>
+
+      <div class="mt-8 grid gap-6 md:grid-cols-2">
+        <div class="rounded-2xl border border-brand-200 bg-white p-6 shadow-card">
+          <h3 class="font-display text-lg font-semibold text-ink-900">Searching across sources</h3>
+          <ul class="mt-4 flex flex-col gap-3 text-sm leading-relaxed text-ink-700">
+            <li class="flex gap-2.5"><span class="text-harvest-700 font-bold" aria-hidden="true">—</span><span>Results depend on knowing the right keywords for a disease you may not have identified yet.</span></li>
+            <li class="flex gap-2.5"><span class="text-harvest-700 font-bold" aria-hidden="true">—</span><span>Advice is often for another crop, climate or growth stage.</span></li>
+            <li class="flex gap-2.5"><span class="text-harvest-700 font-bold" aria-hidden="true">—</span><span>Contradictory recommendations with no way to compare them.</span></li>
+            <li class="flex gap-2.5"><span class="text-harvest-700 font-bold" aria-hidden="true">—</span><span>No record of what you observed or decided.</span></li>
+            <li class="flex gap-2.5"><span class="text-harvest-700 font-bold" aria-hidden="true">—</span><span>Minutes to hours per problem, repeated every season.</span></li>
+          </ul>
+        </div>
+        <div class="rounded-2xl border border-brand-300 bg-brand-50 p-6 shadow-card ring-1 ring-brand-200">
+          <h3 class="font-display text-lg font-semibold text-brand-950">Using CropAlert</h3>
+          <ul class="mt-4 flex flex-col gap-3 text-sm leading-relaxed text-ink-800">
+            <li class="flex gap-2.5"><span class="font-bold text-brand-700" aria-hidden="true">+</span><span>Starts from what you can physically see, so no terminology is needed.</span></li>
+            <li class="flex gap-2.5"><span class="font-bold text-brand-700" aria-hidden="true">+</span><span>Only asks about the twelve diseases actually covered for your crop.</span></li>
+            <li class="flex gap-2.5"><span class="font-bold text-brand-700" aria-hidden="true">+</span><span>One ranked result with a confidence score and the answers behind it.</span></li>
+            <li class="flex gap-2.5"><span class="font-bold text-brand-700" aria-hidden="true">+</span><span>Reference information kept in a searchable Disease Library.</span></li>
+            <li class="flex gap-2.5"><span class="font-bold text-brand-700" aria-hidden="true">+</span><span>Consistent output every time — the same answers give the same result.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- HOW THE AI/ML COMPONENT WORKS ---------- -->
+    <section aria-labelledby="ai-heading" class="border-y border-brand-200 bg-brand-950 text-brand-100">
+      <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+        <div class="max-w-3xl">
+          <p class="text-sm font-semibold uppercase tracking-wider text-harvest-300">The AI / ML component</p>
+          <h2 id="ai-heading" class="mt-2 font-display text-3xl font-bold text-white">
+            How the prediction works, at a simple level
+          </h2>
+          <p class="mt-4 text-lg leading-relaxed text-brand-200">
+            Think of it as teaching a program to ask the same question an experienced agronomist
+            asks: <em>“which disease fits these symptoms best?”</em>
+          </p>
+        </div>
+
+        <ol class="mt-10 grid gap-6 md:grid-cols-4">
+          <li class="rounded-2xl bg-white/5 p-6 ring-1 ring-white/10">
+            <span class="font-display text-sm font-bold text-harvest-300">Step 1</span>
+            <h3 class="mt-2 font-display text-base font-semibold text-white">Turn symptoms into numbers</h3>
+            <p class="mt-2 text-sm leading-relaxed text-brand-200">Each answer becomes a feature — a number that describes one observation, such as “lesions are spindle-shaped”.</p>
+          </li>
+          <li class="rounded-2xl bg-white/5 p-6 ring-1 ring-white/10">
+            <span class="font-display text-sm font-bold text-harvest-300">Step 2</span>
+            <h3 class="mt-2 font-display text-base font-semibold text-white">Score every candidate</h3>
+            <p class="mt-2 text-sm leading-relaxed text-brand-200">Features are combined into a score for each of the four diseases of the crop. Strong evidence adds more than weak evidence; contradictory evidence subtracts.</p>
+          </li>
+          <li class="rounded-2xl bg-white/5 p-6 ring-1 ring-white/10">
+            <span class="font-display text-sm font-bold text-harvest-300">Step 3</span>
+            <h3 class="mt-2 font-display text-base font-semibold text-white">Rank and convert to confidence</h3>
+            <p class="mt-2 text-sm leading-relaxed text-brand-200">Scores are normalised into percentages. The confidence blends how dominant the top score is with how much of the available evidence was captured.</p>
+          </li>
+          <li class="rounded-2xl bg-white/5 p-6 ring-1 ring-white/10">
+            <span class="font-display text-sm font-bold text-harvest-300">Step 4</span>
+            <h3 class="mt-2 font-display text-base font-semibold text-white">Explain the result</h3>
+            <p class="mt-2 text-sm leading-relaxed text-brand-200">The answers that contributed most are listed next to the prediction, so the output can be checked rather than blindly trusted.</p>
+          </li>
+        </ol>
+
+        <div class="mt-10 rounded-2xl border border-harvest-400/40 bg-harvest-500/10 p-6">
+          <h3 class="font-display text-lg font-semibold text-white">Honest status of this component</h3>
+          <p class="mt-2 text-sm leading-relaxed text-brand-100">
+            In this release the scoring runs <strong>in your browser as a transparent weighting
+            prototype</strong>. It is not a trained deep-learning or scikit-learn model, it has not
+            been evaluated against labelled field data, and CropAlert makes no claim of diagnostic
+            accuracy. The scoring function is written so it can be swapped for a real trained model
+            later — the same input (crop and answers) and the same output (ranked diseases with
+            probabilities) — without changing the interface.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- CURRENT SCOPE ---------- -->
+    <section aria-labelledby="scope-heading" class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+      <div class="max-w-3xl">
+        <h2 id="scope-heading" class="font-display text-3xl font-bold text-brand-950">Current scope: 3 crops and 12 diseases</h2>
+        <p class="mt-4 leading-relaxed text-ink-700">
+          CropAlert deliberately stays small. Four diseases per crop keeps the questions
+          discriminating and the explanation readable. Anything outside this list is out of scope —
+          the tool will still return a result, but it can only ever choose from the twelve diseases
+          below.
+        </p>
+      </div>
+
+      <div class="mt-8 grid gap-6 md:grid-cols-3">
+        <!-- Scope lists are filled from script.js data (fallback text included). -->
+        <div class="rounded-2xl border border-brand-200 bg-white p-6 shadow-card">
+          <h3 class="font-display text-lg font-semibold text-ink-900">Rice <span class="text-sm font-normal text-ink-600">(4)</span></h3>
+          <ul class="mt-3 flex flex-col gap-2 text-sm text-ink-700" data-disease-list="rice">
+            <li>Rice Blast</li><li>Rice Sheath Blight</li><li>Rice Bacterial Leaf Blight</li><li>Rice Tungro</li>
+          </ul>
+        </div>
+        <div class="rounded-2xl border border-brand-200 bg-white p-6 shadow-card">
+          <h3 class="font-display text-lg font-semibold text-ink-900">Tomato <span class="text-sm font-normal text-ink-600">(4)</span></h3>
+          <ul class="mt-3 flex flex-col gap-2 text-sm text-ink-700" data-disease-list="tomato">
+            <li>Tomato Early Blight</li><li>Tomato Late Blight</li><li>Tomato Bacterial Spot</li><li>Tomato Septoria Leaf Spot</li>
+          </ul>
+        </div>
+        <div class="rounded-2xl border border-brand-200 bg-white p-6 shadow-card">
+          <h3 class="font-display text-lg font-semibold text-ink-900">Potato <span class="text-sm font-normal text-ink-600">(4)</span></h3>
+          <ul class="mt-3 flex flex-col gap-2 text-sm text-ink-700" data-disease-list="potato">
+            <li>Potato Late Blight</li><li>Potato Early Blight</li><li>Potato Bacterial Wilt</li><li>Potato Black Scurf</li>
+          </ul>
+        </div>
+      </div>
+
+      <p class="mt-6 text-sm text-ink-700">
+        Read the full profiles in the
+        <a href="library.html" class="font-semibold text-brand-700 underline decoration-brand-300 underline-offset-2 hover:decoration-brand-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-2 rounded">Disease Library</a>.
+      </p>
+    </section>
+
+    <!-- ---------- STUDENT PROJECT ---------- -->
+    <section aria-labelledby="student-heading" class="border-y border-brand-200 bg-white">
+      <div class="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-2 lg:items-center lg:px-8">
+        <!-- Image placeholder -->
+        <figure class="m-0 order-2 lg:order-1">
+          <div class="flex aspect-[4/3] flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-brand-300 bg-canvas p-6 text-center shadow-card"
+               role="img"
+               aria-label="Image placeholder: students presenting a laptop with the CropAlert interface at a project exhibition. Replace this block with your own image.">
+            <svg aria-hidden="true" class="h-12 w-12 text-brand-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 19.5h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Z"/>
+            </svg>
+            <p class="text-sm font-semibold text-brand-900">Image placeholder</p>
+            <p class="max-w-xs text-sm text-ink-700">Project or team photo — replace with your own image</p>
+          </div>
+        </figure>
+
+        <div class="order-1 lg:order-2">
+          <p class="text-sm font-semibold uppercase tracking-wider text-brand-700">Student project</p>
+          <h2 id="student-heading" class="mt-2 font-display text-3xl font-bold text-brand-950">
+            This is a student-developed project
+          </h2>
+          <p class="mt-4 leading-relaxed text-ink-700">
+            CropAlert was built as an academic software project to practise the full path of a
+            real-world product: researching a domain problem, modelling disease information,
+            designing an accessible multi-page interface, and implementing a prediction pipeline
+            that can later be connected to a trained model.
+          </p>
+          <p class="mt-4 leading-relaxed text-ink-700">
+            It is <strong>not</strong> a commercial product, it has not been reviewed or endorsed by
+            any agricultural authority, and it has not been validated against field data. Disease
+            descriptions were compiled from standard plant pathology references for educational use;
+            always follow local extension recommendations and pesticide labels.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- LIMITATIONS DISCLAIMER ---------- -->
+    <section aria-labelledby="limits-heading" class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+      <div class="rounded-2xl border border-harvest-300 bg-harvest-50 p-6 sm:p-8">
+        <div class="flex items-start gap-4">
+          <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-harvest-100 text-harvest-800 ring-1 ring-harvest-300" aria-hidden="true">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25 9 16.5m3-6h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+          </span>
+          <div>
+            <h2 id="limits-heading" class="font-display text-lg font-semibold text-ink-900">
+              Limitations of AI-based disease assessment
+            </h2>
+            <p class="mt-2 text-sm leading-relaxed text-ink-800 sm:text-base">
+              <strong>CropAlert provides a preliminary assessment for educational and informational
+              purposes. It is not a substitute for professional agricultural diagnosis or
+              advice.</strong>
+            </p>
+            <ul class="mt-3 flex flex-col gap-2 text-sm leading-relaxed text-ink-700">
+              <li>• The prediction is only as good as the answers entered; subjective or rushed answers reduce reliability.</li>
+              <li>• Several diseases share symptoms, and mixed or secondary infections are possible — only one “most likely” disease is shown.</li>
+              <li>• The tool covers 12 diseases in 3 crops and cannot identify anything else, nutritional disorders, herbicide damage or pests.</li>
+              <li>• It does not inspect images, soil, weather data or field history, and its confidence figure is a score, not a laboratory probability.</li>
+              <li>• No diagnosed accuracy rate has been established for this prototype.</li>
+            </ul>
+            <p class="mt-3 text-sm leading-relaxed text-ink-800">
+              Confirm results with an agronomist, extension officer or diagnostic laboratory before
+              deciding on any control measure.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===================== FOOTER (same on every page) ===================== -->
+  <footer class="bg-brand-950 text-brand-100">
+    <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      <div class="grid gap-10 md:grid-cols-3">
+        <div>
+          <a href="index.html" class="inline-flex items-center gap-2.5 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-400 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-950">
+            <svg class="h-8 w-8" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+              <path d="M20 2.5 34 7.6v11.2c0 9.1-5.7 15.8-14 18.7-8.3-2.9-14-9.6-14-18.7V7.6L20 2.5Z" fill="#ffffff" fill-opacity="0.12"/>
+              <path d="M27.5 11.5c.6 6.8-1.7 12.4-6.9 15.2-4.7-2.2-7.6-6.6-7.4-12.4 5.6-1.6 10.4-2.2 14.3-2.8Z" fill="#96c7a2"/>
+              <circle cx="30.5" cy="29.5" r="6.5" fill="#e9a63f" stroke="#0e2217" stroke-width="2"/>
+              <path d="M30.5 26.7v3.2M30.5 32.3h.01" stroke="#3d1c0b" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <span class="font-display text-base font-bold text-white">CropAlert</span>
+          </a>
+          <p class="mt-4 text-sm leading-relaxed text-brand-200">
+            AI-powered symptom-based crop disease assessment for rice, tomato, and potato.
+          </p>
+          <p class="mt-4 inline-flex rounded-full bg-harvest-500/15 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-harvest-300 ring-1 ring-harvest-500/40">
+            Student project · Prototype
+          </p>
+        </div>
+
+        <nav aria-label="Footer navigation">
+          <h2 class="font-display text-sm font-semibold uppercase tracking-wider text-white">Pages</h2>
+          <ul class="mt-4 flex flex-col gap-2 text-sm">
+            <li><a href="index.html" class="text-brand-200 underline decoration-transparent underline-offset-2 hover:text-white hover:decoration-harvest-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-400 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-950 rounded">Home</a></li>
+            <li><a href="about.html" class="text-brand-200 underline decoration-transparent underline-offset-2 hover:text-white hover:decoration-harvest-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-400 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-950 rounded">About</a></li>
+            <li><a href="app.html" class="text-brand-200 underline decoration-transparent underline-offset-2 hover:text-white hover:decoration-harvest-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-400 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-950 rounded">App</a></li>
+            <li><a href="library.html" class="text-brand-200 underline decoration-transparent underline-offset-2 hover:text-white hover:decoration-harvest-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-400 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-950 rounded">Disease Library</a></li>
+            <li><a href="help.html" class="text-brand-200 underline decoration-transparent underline-offset-2 hover:text-white hover:decoration-harvest-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-400 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-950 rounded">Help</a></li>
+          </ul>
+        </nav>
+
+        <div>
+          <h2 class="font-display text-sm font-semibold uppercase tracking-wider text-white">Disclaimer</h2>
+          <p class="mt-4 text-sm leading-relaxed text-brand-200">
+            CropAlert provides a preliminary assessment for educational and informational purposes.
+            It is not a substitute for professional agricultural diagnosis or advice.
+          </p>
+          <p class="mt-3 text-sm leading-relaxed text-brand-200">
+            The browser-based prediction is a prototype scoring demonstration. CropAlert does not
+            claim a validated diagnostic accuracy.
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-10 flex flex-col gap-2 border-t border-brand-800 pt-6 text-xs text-brand-300 sm:flex-row sm:items-center sm:justify-between">
+        <p>&copy; <span id="year">2026</span> CropAlert — a student-developed prototype project.</p>
+        <p>Plain HTML, JavaScript and Tailwind CSS. Works offline after the first load.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

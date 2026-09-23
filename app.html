@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>App — CropAlert assessment</title>
+  <meta name="description" content="Run a symptom-based crop disease assessment for rice, tomato or potato and get a preliminary, explainable disease prediction with management guidance.">
+
+  <!-- Tailwind CSS via CDN (no npm install required). -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            canvas: '#f5f7f4',
+            brand: { 50:'#f1f7f2',100:'#dfeee2',200:'#c1ddc7',300:'#96c7a2',400:'#66a978',500:'#428c56',600:'#2f7043',700:'#265a37',800:'#21482f',900:'#1c3c29',950:'#0e2217' },
+            harvest: { 50:'#fdf7ec',100:'#fbeed3',200:'#f6dba4',300:'#f0c26d',400:'#e9a63f',500:'#e28b24',600:'#c96e19',700:'#a55317',800:'#86421a',900:'#6e3818' },
+            ink: { 500:'#6b786f',600:'#4d5b54',700:'#3a4741',800:'#24312a',900:'#15201a' }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            display: ['Sora', 'Inter', 'system-ui', 'sans-serif']
+          },
+          boxShadow: {
+            card: '0 1px 2px rgba(21,32,26,0.06), 0 12px 28px -20px rgba(21,32,26,0.45)'
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="bg-canvas font-sans text-ink-800 antialiased">
+
+  <!-- ===================== ACCESSIBILITY: SKIP LINK ===================== -->
+  <a href="#main-content"
+     class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-brand-800 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white">
+    Skip to main content
+  </a>
+
+  <!-- ===================== NAVIGATION (same on every page) ===================== -->
+  <header class="sticky top-0 z-40 border-b border-brand-200 bg-white/95 backdrop-blur">
+    <div class="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
+      <a href="index.html" class="flex items-center gap-2.5 rounded-lg px-1 py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-2">
+        <svg class="h-9 w-9" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+          <path d="M20 2.5 34 7.6v11.2c0 9.1-5.7 15.8-14 18.7-8.3-2.9-14-9.6-14-18.7V7.6L20 2.5Z" fill="#1c3c29"/>
+          <path d="M27.5 11.5c.6 6.8-1.7 12.4-6.9 15.2-4.7-2.2-7.6-6.6-7.4-12.4 5.6-1.6 10.4-2.2 14.3-2.8Z" fill="#96c7a2"/>
+          <path d="M20.6 26.7c-.6-5.4.3-9.9 2.7-13.6" stroke="#1c3c29" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+          <circle cx="30.5" cy="29.5" r="6.5" fill="#e9a63f" stroke="#ffffff" stroke-width="2"/>
+          <path d="M30.5 26.7v3.2M30.5 32.3h.01" stroke="#3d1c0b" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <span class="font-display text-lg font-bold tracking-tight text-brand-900">CropAlert</span>
+      </a>
+
+      <nav aria-label="Main navigation" class="hidden md:block">
+        <ul class="flex items-center gap-1">
+          <li><a href="index.html" class="rounded-lg px-3 py-2 text-sm font-medium text-ink-700 hover:bg-brand-50 hover:text-brand-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-2">Home</a></li>
+          <li><a href="about.html" class="rounded-lg px-3 py-2 text-sm font-medium text-ink-700 hover:bg-brand-50 hover:text-brand-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-2">About</a></li>
+          <li><a href="app.html" aria-current="page" class="rounded-lg bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-900 ring-1 ring-brand-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-2">App</a></li>
+          <li><a href="library.html" class="rounded-lg px-3 py-2 text-sm font-medium text-ink-700 hover:bg-brand-50 hover:text-brand-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-2">Disease Library</a></li>
+          <li><a href="help.html" class="rounded-lg px-3 py-2 text-sm font-medium text-ink-700 hover:bg-brand-50 hover:text-brand-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-2">Help</a></li>
+        </ul>
+      </nav>
+
+      <button type="button" id="nav-toggle" aria-expanded="false" aria-controls="mobile-menu"
+              class="inline-flex items-center justify-center rounded-lg border border-brand-200 p-2 text-ink-700 hover:bg-brand-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-2 md:hidden">
+        <span id="nav-toggle-label" class="sr-only">Open main menu</span>
+        <svg aria-hidden="true" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+          <path stroke-linecap="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5"/>
+        </svg>
+      </button>
+    </div>
+
+    <div id="mobile-menu" class="hidden border-t border-brand-200 bg-white md:hidden">
+      <nav aria-label="Mobile navigation" class="mx-auto max-w-7xl px-4 py-3 sm:px-6">
+        <ul class="flex flex-col gap-1">
+          <li><a href="index.html" class="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-700 hover:bg-brand-50">Home</a></li>
+          <li><a href="about.html" class="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-700 hover:bg-brand-50">About</a></li>
+          <li><a href="app.html" aria-current="page" class="block rounded-lg bg-brand-50 px-3 py-2.5 text-sm font-semibold text-brand-900">App</a></li>
+          <li><a href="library.html" class="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-700 hover:bg-brand-50">Disease Library</a></li>
+          <li><a href="help.html" class="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-700 hover:bg-brand-50">Help</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ===================== MAIN CONTENT ===================== -->
+  <main id="main-content">
+
+    <!-- ---------- PAGE HEADER ---------- -->
+    <section class="border-b border-brand-200 bg-gradient-to-b from-brand-50 to-canvas">
+      <div class="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+        <p class="text-sm font-semibold uppercase tracking-wider text-brand-700">App</p>
+        <h1 class="mt-3 font-display text-3xl font-bold leading-tight tracking-tight text-brand-950 sm:text-4xl">
+          Symptom-based crop assessment
+        </h1>
+        <p class="mt-4 max-w-3xl text-lg leading-relaxed text-ink-700">
+          Select your crop, answer six symptom questions, and receive a preliminary disease
+          prediction with the information behind it.
+        </p>
+
+        <!-- Honest labelling of the prediction component -->
+        <p class="mt-5 inline-flex flex-wrap items-center gap-2 rounded-full border border-brand-300 bg-white px-3.5 py-1.5 text-xs font-semibold text-brand-800">
+          <span class="h-2 w-2 rounded-full bg-harvest-500" aria-hidden="true"></span>
+          Prototype AI/ML demonstration — browser-based scoring, not a trained model
+        </p>
+      </div>
+    </section>
+
+    <div class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+
+      <!-- Fallback if JavaScript is disabled -->
+      <noscript>
+        <div class="rounded-2xl border border-harvest-300 bg-harvest-50 p-6 text-ink-800">
+          <h2 class="font-display text-lg font-semibold">JavaScript is required</h2>
+          <p class="mt-2 text-sm leading-relaxed">
+            The interactive assessment needs JavaScript. You can still read all twelve disease
+            profiles in the <a class="font-semibold text-brand-700 underline" href="library.html">Disease Library</a>.
+          </p>
+        </div>
+      </noscript>
+
+      <!-- ============================================================
+           STEP 1 — CROP SELECTION
+           Three crop cards; each button starts that crop's assessment.
+           Disease lists inside the cards come from script.js (DISEASES).
+           ============================================================ -->
+      <section id="step-crops" aria-labelledby="crops-heading">
+        <div class="mb-6 flex flex-wrap items-baseline justify-between gap-3">
+          <div>
+            <p class="text-sm font-semibold uppercase tracking-wider text-brand-700">Step 1 of 3</p>
+            <h2 id="crops-heading" class="mt-1 font-display text-2xl font-bold text-brand-950">Select your crop</h2>
+          </div>
+          <p class="text-sm text-ink-600">Each crop has its own set of four candidate diseases and six questions.</p>
+        </div>
+
+        <div class="grid gap-6 md:grid-cols-3">
+          <!-- RICE -->
+          <div class="flex flex-col rounded-2xl border border-brand-200 bg-white p-6 shadow-card">
+            <div class="flex items-center justify-between gap-3">
+              <h3 class="font-display text-xl font-semibold text-ink-900">Rice</h3>
+              <span class="rounded-full bg-brand-100 px-2.5 py-1 text-xs font-semibold text-brand-800 ring-1 ring-brand-200">4 diseases</span>
+            </div>
+            <p class="mt-1 text-sm italic text-ink-600">Oryza sativa</p>
+            <p class="mt-4 text-xs font-semibold uppercase tracking-wide text-brand-700">Candidate diseases</p>
+            <ul class="mt-2 flex flex-1 flex-col gap-1.5 text-sm text-ink-700" data-disease-list="rice">
+              <li>Rice Blast</li>
+              <li>Rice Sheath Blight</li>
+              <li>Rice Bacterial Leaf Blight</li>
+              <li>Rice Tungro</li>
+            </ul>
+            <button type="button" data-crop-choice="rice"
+                    class="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-700 px-4 py-3 text-sm font-semibold text-white hover:bg-brand-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-2">
+              Start rice assessment
+              <svg aria-hidden="true" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12l-7.5 7.5M3 12h17.25"/></svg>
+            </button>
+          </div>
+
+          <!-- TOMATO -->
+          <div class="flex flex-col rounded-2xl border border-brand-200 bg-white p-6 shadow-card">
+            <div class="flex items-center justify-between gap-3">
+              <h3 class="font-display text-xl font-semibold text-ink-900">Tomato</h3>
+              <span class="rounded-full bg-brand-100 px-2.5 py-1 text-xs font-semibold text-brand-800 ring-1 ring-brand-200">4 diseases</span>
+            </div>
+            <p class="mt-1 text-sm italic text-ink-600">Solanum lycopersicum</p>
+            <p class="mt-4 text-xs font-semibold uppercase tracking-wide text-brand-700">Candidate diseases</p>
+            <ul class="mt-2 flex flex-1 flex-col gap-1.5 text-sm text-ink-700" data-disease-list="tomato">
+              <li>Tomato Early Blight</li>
+              <li>Tomato Late Blight</li>
+              <li>Tomato Bacterial Spot</li>
+              <li>Tomato Septoria Leaf Spot</li>
+            </ul>
+            <button type="button" data-crop-choice="tomato"
+                    class="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-700 px-4 py-3 text-sm font-semibold text-white hover:bg-brand-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-2">
+              Start tomato assessment
+              <svg aria-hidden="true" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12l-7.5 7.5M3 12h17.25"/></svg>
+            </button>
+          </div>
+
+          <!-- POTATO -->
+          <div class="flex flex-col rounded-2xl border border-brand-200 bg-white p-6 shadow-card">
+            <div class="flex items-center justify-between gap-3">
+              <h3 class="font-display text-xl font-semibold text-ink-900">Potato</h3>
+              <span class="rounded-full bg-brand-100 px-2.5 py-1 text-xs font-semibold text-brand-800 ring-1 ring-brand-200">4 diseases</span>
+            </div>
+            <p class="mt-1 text-sm italic text-ink-600">Solanum tuberosum</p>
+            <p class="mt-4 text-xs font-semibold uppercase tracking-wide text-brand-700">Candidate diseases</p>
+            <ul class="mt-2 flex flex-1 flex-col gap-1.5 text-sm text-ink-700" data-disease-list="potato">
+              <li>Potato Late Blight</li>
+              <li>Potato Early Blight</li>
+              <li>Potato Bacterial Wilt</li>
+              <li>Potato Black Scurf</li>
+            </ul>
+            <button type="button" data-crop-choice="potato"
+                    class="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-700 px-4 py-3 text-sm font-semibold text-white hover:bg-brand-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-2">
+              Start potato assessment
+              <svg aria-hidden="true" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12l-7.5 7.5M3 12h17.25"/></svg>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           STEP 2 — QUESTIONS
+           One question at a time: progress indicator, radio group,
+           validation message, Back / Next / Restart controls.
+           The question text and options are rendered by script.js.
+           ============================================================ -->
+      <section id="step-quiz" hidden aria-labelledby="quiz-heading">
+        <div class="rounded-2xl border border-brand-200 bg-white p-6 shadow-card sm:p-8">
+
+          <!-- Assessment header + restart -->
+          <div class="flex flex-wrap items-start justify-between gap-4 border-b border-brand-100 pb-5">
+            <div>
+              <p class="text-sm font-semibold uppercase tracking-wider text-brand-700">Step 2 of 3</p>
+              <h2 id="quiz-heading" class="mt-1 font-display text-2xl font-bold text-brand-950">
+                Answer the symptom questions
+              </h2>
+              <p class="mt-1 text-sm text-ink-600">
+                Crop: <span id="assessment-crop" class="font-semibold text-ink-900">—</span>
+                · You can go back and change any answer.
+              </p>
+            </div>
+            <button type="button" id="btn-restart"
+                    class="rounded-xl border border-brand-300 bg-white px-4 py-2.5 text-sm font-semibold text-brand-800 hover:bg-brand-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-2">
+              Restart assessment
+            </button>
+          </div>
+
+          <!-- Progress indicator: text + role=progressbar + visual bar -->
+          <div class="mt-6">
+            <div class="mb-2 flex items-center justify-between gap-4">
+              <p id="progress-text" class="text-sm font-semibold text-ink-800">Question 1 of 6</p>
+              <p class="text-sm text-ink-600">Select one answer per question</p>
+            </div>
+            <div id="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="6" aria-valuenow="1"
+                 aria-labelledby="progress-text"
+                 class="h-2.5 w-full overflow-hidden rounded-full bg-brand-100">
+              <div id="progress-fill" class="h-full rounded-full bg-brand-600" style="width: 17%"></div>
+            </div>
+          </div>
+
+          <!-- Question + options (fieldset/legend keeps the group announced) -->
+          <fieldset id="question-fieldset" aria-describedby="question-error" class="mt-8 border-0 p-0">
+            <legend id="question-text" class="w-full p-0 font-display text-xl font-semibold leading-snug text-ink-900">
+              Loading question…
+            </legend>
+
+            <!-- Validation message (role=alert so it is announced immediately) -->
+            <div id="question-error" role="alert" hidden
+                 class="mt-4 rounded-xl border border-harvest-300 bg-harvest-50 px-4 py-3 text-sm font-medium text-ink-900"></div>
+
+            <!-- Options are rendered here by script.js -->
+            <div id="question-options" class="mt-5 flex flex-col gap-3"></div>
+          </fieldset>
+
+          <!-- Back / Next controls -->
+          <div class="mt-8 flex flex-col-reverse gap-3 border-t border-brand-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
+            <button type="button" id="btn-back"
+                    class="rounded-xl border border-brand-300 bg-white px-5 py-3 text-sm font-semibold text-brand-800 hover:bg-brand-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+              ← Back
+            </button>
+            <button type="button" id="btn-next"
+                    class="rounded-xl bg-brand-700 px-6 py-3 text-sm font-semibold text-white hover:bg-brand-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-2">
+              Next question
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           STEP 3 — RESULT
+           Prediction (crop, disease, confidence, evidence, candidates)
+           + disease reference information + actions + disclaimer.
+           All content is filled in by renderResult() in script.js.
+           ============================================================ -->
+      <section id="step-result" hidden aria-labelledby="result-heading">
+        <div class="rounded-2xl border border-brand-200 bg-white shadow-card">
+
+          <!-- Result header -->
+          <div class="border-b border-brand-100 p-6 sm:p-8">
+            <p class="text-sm font-semibold uppercase tracking-wider text-brand-700">Step 3 of 3 · Result</p>
+            <h2 id="result-heading" tabindex="-1" class="mt-1 font-display text-2xl font-bold text-brand-950 focus:outline-none">
+              Your assessment result
+            </h2>
+            <p class="mt-2 text-sm text-ink-700">
+              Generated by a <strong>prototype AI/ML demonstration</strong> running in your browser:
+              transparent symptom scoring, not a trained or field-validated model.
+            </p>
+          </div>
+
+          <div class="grid gap-8 p-6 sm:p-8 lg:grid-cols-5">
+            <!-- ---------- Prediction column ---------- -->
+            <div class="lg:col-span-3">
+              <!-- Headline: crop + predicted disease -->
+              <div class="rounded-2xl border border-brand-200 bg-brand-50 p-6">
+                <p class="text-sm font-semibold uppercase tracking-wide text-brand-700">Most likely disease</p>
+                <p class="mt-3 flex flex-wrap items-center gap-2">
+                  <span id="result-crop" class="rounded-full bg-white px-3 py-1 text-sm font-semibold text-brand-800 ring-1 ring-brand-200">—</span>
+                  <span class="text-sm text-ink-600">Crop</span>
+                </p>
+                <p id="result-disease" class="mt-3 font-display text-3xl font-bold leading-tight text-brand-950">—</p>
+
+                <!-- Confidence: number + band label + bar (text first, colour second) -->
+                <div class="mt-6">
+                  <div class="flex flex-wrap items-baseline justify-between gap-2">
+                    <p id="result-confidence" class="font-display text-2xl font-bold text-ink-900">—</p>
+                    <p id="result-band" class="rounded-full bg-white px-3 py-1 text-sm font-semibold text-brand-800 ring-1 ring-brand-200">—</p>
+                  </div>
+                  <!-- Decorative bar: the number and band above are the text equivalent. -->
+                  <div class="mt-3 h-4 w-full overflow-hidden rounded-full bg-white ring-1 ring-brand-200" aria-hidden="true">
+                    <div id="confidence-fill" class="h-full rounded-full bg-brand-600" style="width: 0%"></div>
+                  </div>
+                  <p class="mt-2 text-xs text-ink-600">
+                    Confidence is a matching score from 0–90% for this prototype — not a laboratory probability.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Why this result -->
+              <div class="mt-6">
+                <h3 class="font-display text-lg font-semibold text-ink-900">Why this result was suggested</h3>
+                <p id="result-explanation" class="mt-2 text-sm leading-relaxed text-ink-700"></p>
+              </div>
+
+              <!-- Contributing symptoms -->
+              <div class="mt-6">
+                <h3 class="font-display text-lg font-semibold text-ink-900">Key symptoms you reported</h3>
+                <ul id="evidence-list" class="mt-3 flex flex-col gap-3 text-sm"></ul>
+              </div>
+
+              <!-- Score distribution across candidates -->
+              <div class="mt-6">
+                <h3 class="font-display text-lg font-semibold text-ink-900">How the four diseases compared</h3>
+                <p class="mt-1 text-xs text-ink-600">Share of the total supporting score from your answers.</p>
+                <ul id="candidate-list" class="mt-3 flex flex-col gap-3"></ul>
+              </div>
+
+              <!-- Actions -->
+              <div class="mt-8 flex flex-wrap gap-3">
+                <button type="button" id="btn-save"
+                        class="rounded-xl bg-brand-700 px-5 py-3 text-sm font-semibold text-white hover:bg-brand-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60">
+                  Save result
+                </button>
+                <button type="button" id="btn-assess-again"
+                        class="rounded-xl border border-brand-300 bg-white px-5 py-3 text-sm font-semibold text-brand-800 hover:bg-brand-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-2">
+                  Assess again
+                </button>
+                <a id="result-library-link" href="library.html"
+                   class="rounded-xl border border-brand-300 bg-white px-5 py-3 text-sm font-semibold text-brand-800 hover:bg-brand-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-2">
+                  Read about this disease
+                </a>
+              </div>
+
+              <!-- Honest explanation of the score -->
+              <details class="mt-6 rounded-xl border border-brand-200 bg-canvas p-5">
+                <summary class="cursor-pointer text-sm font-semibold text-brand-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-2 rounded">
+                  How was this prediction calculated?
+                </summary>
+                <p class="mt-3 text-sm leading-relaxed text-ink-700">
+                  Every answer adds or subtracts weight from each of the four candidate diseases for
+                  your crop. The weights come from standard symptom descriptions of those diseases.
+                  Scores are then converted into a percentage share, and the headline confidence
+                  blends that share with how much of the available evidence you confirmed
+                  (capped at 90%). The same answers always produce the same result. This is a
+                  deterministic scoring prototype — it is not a trained machine-learning model and
+                  its accuracy has not been validated.
+                </p>
+              </details>
+            </div>
+
+            <!-- ---------- Disease information column ---------- -->
+            <div class="lg:col-span-2">
+              <div class="rounded-2xl border border-brand-200 bg-canvas p-6">
+                <p class="text-sm font-semibold uppercase tracking-wide text-brand-700">Disease information</p>
+                <p class="mt-3 text-sm font-semibold text-ink-600"><span id="disease-crop">—</span></p>
+                <h3 id="disease-name" class="font-display text-xl font-bold text-ink-900">—</h3>
+
+                <dl class="mt-5 flex flex-col gap-5 text-sm">
+                  <div>
+                    <dt class="font-semibold text-ink-900">Causal organism</dt>
+                    <dd id="disease-causal" class="mt-1 leading-relaxed text-ink-700"></dd>
+                  </div>
+                  <div>
+                    <dt class="font-semibold text-ink-900">Key symptoms</dt>
+                    <dd class="mt-1">
+                      <ul id="disease-symptoms" class="flex list-disc flex-col gap-1.5 pl-5 leading-relaxed text-ink-700 marker:text-brand-500"></ul>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt class="font-semibold text-ink-900">Affected plant parts</dt>
+                    <dd id="disease-parts" class="mt-1 leading-relaxed text-ink-700"></dd>
+                  </div>
+                  <div>
+                    <dt class="font-semibold text-ink-900">Favourable conditions</dt>
+                    <dd id="disease-conditions" class="mt-1 leading-relaxed text-ink-700"></dd>
+                  </div>
+                  <div>
+                    <dt class="font-semibold text-ink-900">Management</dt>
+                    <dd id="disease-management" class="mt-1 leading-relaxed text-ink-700"></dd>
+                  </div>
+                  <div>
+                    <dt class="font-semibold text-ink-900">Prevention</dt>
+                    <dd id="disease-prevention" class="mt-1 leading-relaxed text-ink-700"></dd>
+                  </div>
+                </dl>
+              </div>
+
+              <!-- Disclaimer: prominent, non-alarming -->
+              <div class="mt-6 rounded-2xl border border-harvest-300 bg-harvest-50 p-5">
+                <div class="flex items-start gap-3">
+                  <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-harvest-100 text-harvest-800 ring-1 ring-harvest-300" aria-hidden="true">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25 9 16.5m3-6h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                  </span>
+                  <p class="text-sm leading-relaxed text-ink-800">
+                    <strong>CropAlert provides a preliminary assessment for educational and
+                    informational purposes. It is not a substitute for professional agricultural
+                    diagnosis or advice.</strong>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           HISTORY / SAVED RESULTS
+           Persisted in localStorage (see script.js). Degrades with a
+           clear message when storage is unavailable (common on file://).
+           ============================================================ -->
+      <section aria-labelledby="history-heading" class="mt-10 rounded-2xl border border-brand-200 bg-white p-6 shadow-card sm:p-8">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 id="history-heading" class="font-display text-xl font-bold text-brand-950">Saved assessments</h2>
+            <p class="mt-1 text-sm text-ink-600">Results you save on this device (your last 20).</p>
+          </div>
+          <button type="button" id="btn-clear-history" hidden
+                  class="rounded-xl border border-brand-300 bg-white px-4 py-2.5 text-sm font-semibold text-brand-800 hover:bg-brand-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-600 focus-visible:ring-offset-2">
+            Clear saved results
+          </button>
+        </div>
+
+        <p id="history-note" hidden class="mt-4 rounded-xl border border-harvest-300 bg-harvest-50 px-4 py-3 text-sm text-ink-800"></p>
+
+        <p id="history-empty" class="mt-5 rounded-xl border border-dashed border-brand-300 bg-canvas px-4 py-6 text-center text-sm text-ink-700">
+          No saved results yet. Run an assessment and choose <strong>Save result</strong>.
+        </p>
+
+        <ul id="history-list" class="mt-5 flex flex-col gap-3"></ul>
+
+        <!-- Status messages for save / clear actions -->
+        <p id="save-status" role="status" aria-live="polite" class="mt-4 text-sm font-medium text-brand-800"></p>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ===================== FOOTER (same on every page) ===================== -->
+  <footer class="bg-brand-950 text-brand-100">
+    <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      <div class="grid gap-10 md:grid-cols-3">
+        <div>
+          <a href="index.html" class="inline-flex items-center gap-2.5 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-400 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-950">
+            <svg class="h-8 w-8" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+              <path d="M20 2.5 34 7.6v11.2c0 9.1-5.7 15.8-14 18.7-8.3-2.9-14-9.6-14-18.7V7.6L20 2.5Z" fill="#ffffff" fill-opacity="0.12"/>
+              <path d="M27.5 11.5c.6 6.8-1.7 12.4-6.9 15.2-4.7-2.2-7.6-6.6-7.4-12.4 5.6-1.6 10.4-2.2 14.3-2.8Z" fill="#96c7a2"/>
+              <circle cx="30.5" cy="29.5" r="6.5" fill="#e9a63f" stroke="#0e2217" stroke-width="2"/>
+              <path d="M30.5 26.7v3.2M30.5 32.3h.01" stroke="#3d1c0b" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <span class="font-display text-base font-bold text-white">CropAlert</span>
+          </a>
+          <p class="mt-4 text-sm leading-relaxed text-brand-200">
+            AI-powered symptom-based crop disease assessment for rice, tomato, and potato.
+          </p>
+          <p class="mt-4 inline-flex rounded-full bg-harvest-500/15 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-harvest-300 ring-1 ring-harvest-500/40">
+            Student project · Prototype
+          </p>
+        </div>
+
+        <nav aria-label="Footer navigation">
+          <h2 class="font-display text-sm font-semibold uppercase tracking-wider text-white">Pages</h2>
+          <ul class="mt-4 flex flex-col gap-2 text-sm">
+            <li><a href="index.html" class="text-brand-200 underline decoration-transparent underline-offset-2 hover:text-white hover:decoration-harvest-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-400 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-950 rounded">Home</a></li>
+            <li><a href="about.html" class="text-brand-200 underline decoration-transparent underline-offset-2 hover:text-white hover:decoration-harvest-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-400 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-950 rounded">About</a></li>
+            <li><a href="app.html" class="text-brand-200 underline decoration-transparent underline-offset-2 hover:text-white hover:decoration-harvest-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-400 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-950 rounded">App</a></li>
+            <li><a href="library.html" class="text-brand-200 underline decoration-transparent underline-offset-2 hover:text-white hover:decoration-harvest-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-400 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-950 rounded">Disease Library</a></li>
+            <li><a href="help.html" class="text-brand-200 underline decoration-transparent underline-offset-2 hover:text-white hover:decoration-harvest-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-harvest-400 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-950 rounded">Help</a></li>
+          </ul>
+        </nav>
+
+        <div>
+          <h2 class="font-display text-sm font-semibold uppercase tracking-wider text-white">Disclaimer</h2>
+          <p class="mt-4 text-sm leading-relaxed text-brand-200">
+            CropAlert provides a preliminary assessment for educational and informational purposes.
+            It is not a substitute for professional agricultural diagnosis or advice.
+          </p>
+          <p class="mt-3 text-sm leading-relaxed text-brand-200">
+            The browser-based prediction is a prototype scoring demonstration. CropAlert does not
+            claim a validated diagnostic accuracy.
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-10 flex flex-col gap-2 border-t border-brand-800 pt-6 text-xs text-brand-300 sm:flex-row sm:items-center sm:justify-between">
+        <p>&copy; <span id="year">2026</span> CropAlert — a student-developed prototype project.</p>
+        <p>Plain HTML, JavaScript and Tailwind CSS. Works offline after the first load.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
